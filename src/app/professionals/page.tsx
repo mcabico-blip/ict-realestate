@@ -19,11 +19,12 @@ const typeFilters = [
 export default async function ProfessionalsPage({
   searchParams,
 }: {
-  searchParams: Record<string, string | undefined>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const type = searchParams.type;
-  const city = searchParams.city;
-  const keyword = searchParams.keyword;
+  const sp = await searchParams;
+  const type = sp.type;
+  const city = sp.city;
+  const keyword = sp.keyword;
 
   type ProfResult = Awaited<ReturnType<typeof db.professionalProfile.findMany<{ include: { user: { select: { name: true; email: true; phone: true } } } }>>>;
   let professionals: ProfResult = [];

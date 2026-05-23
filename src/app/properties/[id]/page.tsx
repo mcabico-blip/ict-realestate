@@ -4,6 +4,8 @@ import Image from "next/image";
 import { db } from "@/lib/db";
 import { formatPrice, getListingTypeLabel, getPropertyTypeLabel } from "@/lib/utils";
 import { InquiryForm } from "@/components/property/inquiry-form";
+import { FavoriteButton } from "@/components/property/favorite-button";
+import { ShareButton } from "@/components/property/share-button";
 import {
   MapPin, Bed, Bath, Maximize, Car, Calendar, Home,
   Phone, Mail, CheckCircle2, Eye, Heart,
@@ -118,13 +120,19 @@ export default async function PropertyDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 text-xs text-gray-400 mt-3">
-              <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{property.viewCount} views</span>
-              <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5" />{property._count.favorites} saves</span>
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
-                Listed {new Date(property.createdAt).toLocaleDateString("en-PH", { month: "long", year: "numeric" })}
-              </span>
+            <div className="flex items-center justify-between gap-4 mt-3 flex-wrap">
+              <div className="flex items-center gap-4 text-xs text-gray-400">
+                <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{property.viewCount} views</span>
+                <span className="flex items-center gap-1"><Heart className="h-3.5 w-3.5" />{property._count.favorites} saves</span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Listed {new Date(property.createdAt).toLocaleDateString("en-PH", { month: "long", year: "numeric" })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <FavoriteButton propertyId={property.id} />
+                <ShareButton title={property.title} />
+              </div>
             </div>
           </div>
 

@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, MapPin, Bed, Bath, Maximize, Car } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { MapPin, Bed, Bath, Maximize } from "lucide-react";
 import { formatPrice, getListingTypeLabel, getPropertyTypeLabel } from "@/lib/utils";
 import { PropertyCard as PropertyCardType } from "@/types";
 import { cn } from "@/lib/utils";
+import { FavoriteButton } from "@/components/property/favorite-button";
 
 interface PropertyCardProps {
   property: PropertyCardType;
@@ -21,7 +21,6 @@ const listingColors: Record<string, string> = {
 
 export function PropertyCard({ property, className }: PropertyCardProps) {
   const primaryImage = property.images.find((i) => i.isPrimary) ?? property.images[0];
-  const imageUrl = primaryImage?.url ?? "/placeholder-property.jpg";
 
   return (
     <Link href={`/properties/${property.id}`}>
@@ -33,13 +32,20 @@ export function PropertyCard({ property, className }: PropertyCardProps) {
       >
         {/* Image */}
         <div className="relative h-52 overflow-hidden bg-gray-100">
-          <Image
-            src={imageUrl}
-            alt={property.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+          {primaryImage?.url ? (
+            <Image
+              src={primaryImage.url}
+              alt={property.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+              <span className="text-5xl select-none">🏠</span>
+            </div>
+          )}
+
           {/* Badges */}
           <div className="absolute top-3 left-3 flex gap-2">
             <span
@@ -56,10 +62,10 @@ export function PropertyCard({ property, className }: PropertyCardProps) {
               </span>
             )}
           </div>
+
           {/* Favorite */}
-          <button className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-sm">
-            <Heart className="h-4 w-4 text-gray-600 hover:text-red-500 transition-colors" />
-          </button>
+          <FavoriteButton propertyId={property.id} className="absolute top-3 right-3" />
+
           {/* Property Type */}
           <div className="absolute bottom-3 left-3">
             <span className="px-2 py-0.5 bg-black/60 text-white text-xs rounded-full">
