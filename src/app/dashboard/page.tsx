@@ -53,19 +53,30 @@ export default async function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "My Listings", value: properties.length, icon: <Building2 className="h-5 w-5 text-red-500" /> },
-          { label: "Total Views", value: totalViews, icon: <Eye className="h-5 w-5 text-blue-500" /> },
-          { label: "Inquiries Received", value: totalInquiries, icon: <MessageSquare className="h-5 w-5 text-green-500" /> },
-          { label: "Saved Properties", value: favorites, icon: <Heart className="h-5 w-5 text-pink-500" /> },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-500">{stat.label}</span>
-              {stat.icon}
+          { label: "My Listings", value: properties.length, icon: <Building2 className="h-5 w-5 text-red-500" />, href: null },
+          { label: "Total Views", value: totalViews, icon: <Eye className="h-5 w-5 text-blue-500" />, href: null },
+          { label: "Inquiries Received", value: totalInquiries, icon: <MessageSquare className="h-5 w-5 text-green-500" />, href: "/dashboard/inquiries" },
+          { label: "Saved Properties", value: favorites, icon: <Heart className="h-5 w-5 text-pink-500" />, href: null },
+        ].map((stat) => {
+          const inner = (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500">{stat.label}</span>
+                {stat.icon}
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+            </>
+          );
+          return stat.href ? (
+            <Link key={stat.label} href={stat.href} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:border-green-200 hover:shadow-md transition-all">
+              {inner}
+            </Link>
+          ) : (
+            <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+              {inner}
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* My Listings */}

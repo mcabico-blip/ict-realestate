@@ -11,11 +11,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Props = { params: { userId: string } };
+type Props = { params: Promise<{ userId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { userId } = await params;
   const profile = await db.professionalProfile.findUnique({
-    where: { userId: params.userId },
+    where: { userId },
     include: { user: { select: { name: true } } },
   });
   if (!profile) return { title: "Professional Not Found" };
@@ -31,8 +32,9 @@ const typeIcons: Record<string, React.ReactNode> = {
 };
 
 export default async function ProfessionalProfilePage({ params }: Props) {
+  const { userId } = await params;
   const profile = await db.professionalProfile.findUnique({
-    where: { userId: params.userId },
+    where: { userId },
     include: { user: true },
   });
 
@@ -44,7 +46,7 @@ export default async function ProfessionalProfilePage({ params }: Props) {
   // Fetch listings if broker/salesperson
   const properties = isBrokerOrSalesperson
     ? await db.property.findMany({
-        where: { ownerId: params.userId, status: "ACTIVE" },
+        where: { ownerId: userId, status: "ACTIVE" },
         orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
         take: 6,
         select: {
@@ -243,7 +245,7 @@ export default async function ProfessionalProfilePage({ params }: Props) {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-900">Active Listings ({properties.length})</h2>
-                <Link href={`/properties?owner=${params.userId}`} className="text-sm text-red-600 hover:underline">
+                <Link href={`/properties?owner=${userId}`} className="text-sm text-red-600 hover:underline">
                   View all →
                 </Link>
               </div>

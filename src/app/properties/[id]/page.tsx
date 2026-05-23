@@ -9,11 +9,12 @@ import {
   Phone, Mail, CheckCircle2, Eye, Heart,
 } from "lucide-react";
 
-type Props = { params: { id: string } };
+type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
   const property = await db.property.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: { title: true, city: true, province: true, description: true },
   });
   if (!property) return { title: "Property Not Found" };
@@ -30,8 +31,9 @@ const listingColors: Record<string, string> = {
 };
 
 export default async function PropertyDetailPage({ params }: Props) {
+  const { id } = await params;
   const property = await db.property.findUnique({
-    where: { id: params.id, status: "ACTIVE" },
+    where: { id, status: "ACTIVE" },
     include: {
       images: { orderBy: [{ isPrimary: "desc" }, { order: "asc" }] },
       amenities: true,
@@ -45,7 +47,7 @@ export default async function PropertyDetailPage({ params }: Props) {
   if (!property) notFound();
 
   await db.property.update({
-    where: { id: params.id },
+    where: { id },
     data: { viewCount: { increment: 1 } },
   });
 
