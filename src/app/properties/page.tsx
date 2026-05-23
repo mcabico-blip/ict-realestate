@@ -23,7 +23,9 @@ export default async function PropertiesPage({
             ? "Properties for Rent"
             : sp.listing === "FOR_LEASE"
             ? "Properties for Lease"
-            : "Properties for Sale"}
+            : sp.listing === "FOR_SALE"
+            ? "Properties for Sale"
+            : "Properties"}
           {sp.city && ` in ${sp.city}`}
         </h1>
         <p className="text-gray-500 text-sm mt-1">Browse verified listings across the Philippines</p>
