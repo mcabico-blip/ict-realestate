@@ -12,7 +12,6 @@ const navLinks = [
   { href: "/properties?listing=FOR_RENT", label: "Rent" },
   { href: "/properties?listing=FOR_LEASE", label: "Lease" },
   { href: "/professionals?type=BROKER", label: "Brokers" },
-  { href: "/professionals?type=LAWYER", label: "Lawyers" },
 ];
 
 export function Navbar() {
