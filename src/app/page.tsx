@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HeroSearch } from "@/components/home/hero-search";
-import { Building2, TrendingUp, Shield, Headphones, ChevronRight } from "lucide-react";
+import { Building2, TrendingUp, Shield, Headphones, ChevronRight, Sparkles, Brain, Star } from "lucide-react";
 
 const stats = [
   { label: "Active Listings", value: "50,000+" },
@@ -40,13 +40,31 @@ const features = [
   },
   {
     icon: <TrendingUp className="h-7 w-7 text-red-600" />,
-    title: "Market Insights",
-    desc: "Get real-time market data, price trends, and investment analytics.",
+    title: "AI Price Intelligence",
+    desc: "AI-driven valuation models give you real-time price estimates and market trend forecasts.",
   },
   {
     icon: <Headphones className="h-7 w-7 text-red-600" />,
-    title: "Expert Support",
-    desc: "Our team of licensed real estate professionals is here to guide you.",
+    title: "AI-Matched Professionals",
+    desc: "Our AI connects you with the right broker, salesperson, or real estate lawyer for your needs.",
+  },
+];
+
+const aiFeatures = [
+  {
+    icon: <Sparkles className="h-6 w-6 text-violet-400" />,
+    title: "Smart Property Search",
+    desc: "AI understands your preferences and surfaces listings that match your lifestyle, budget, and location goals.",
+  },
+  {
+    icon: <Brain className="h-6 w-6 text-violet-400" />,
+    title: "AI Price Valuation",
+    desc: "Instant AI-powered market valuations based on comparable sales, location data, and current demand.",
+  },
+  {
+    icon: <Star className="h-6 w-6 text-violet-400" />,
+    title: "Professional Matching",
+    desc: "Get matched to PRC-licensed brokers, RESA salespersons, and IBP lawyers best suited to your transaction.",
   },
 ];
 
@@ -61,8 +79,12 @@ export default function HomePage() {
         }}
       >
         <div className="relative z-10 text-center px-4 w-full max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 bg-violet-600/80 backdrop-blur-sm text-white text-xs font-semibold px-4 py-1.5 rounded-full mb-4 border border-violet-400/40">
+            <Sparkles className="h-3.5 w-3.5 text-violet-200" />
+            AI-Powered Real Estate Platform
+          </div>
           <p className="text-red-400 font-semibold text-sm uppercase tracking-widest mb-3">
-            🇵🇭 Philippines' Real Estate Marketplace
+            🇵🇭 Philippines' #1 Property Marketplace
           </p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
             Find Your Dream
@@ -70,7 +92,7 @@ export default function HomePage() {
             <span className="text-red-400">Property in the Philippines</span>
           </h1>
           <p className="text-gray-200 text-lg mb-8 max-w-xl mx-auto">
-            Buy, sell, or rent houses, condos, lots, and commercial spaces — from Luzon to Mindanao.
+            Buy, sell, or rent houses, condos, lots, and commercial spaces — powered by AI, from Luzon to Mindanao.
           </p>
           <HeroSearch />
         </div>
@@ -84,6 +106,38 @@ export default function HomePage() {
               <div key={s.label}>
                 <p className="text-3xl font-bold text-white">{s.value}</p>
                 <p className="text-red-200 text-sm mt-1">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI Features */}
+      <section className="bg-gradient-to-br from-gray-950 to-violet-950 py-14">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-violet-500/20 border border-violet-500/30 text-violet-300 text-xs font-semibold px-4 py-1.5 rounded-full mb-4">
+              <Sparkles className="h-3.5 w-3.5" />
+              Powered by Artificial Intelligence
+            </div>
+            <h2 className="text-3xl font-bold text-white">The Smarter Way to Find Property</h2>
+            <p className="text-gray-400 mt-2 max-w-xl mx-auto">
+              ICT Real Estate leverages AI to make your property search faster, smarter, and more personalized than ever before.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {aiFeatures.map((f) => (
+              <div
+                key={f.title}
+                className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/20 border border-violet-500/30">
+                    {f.icon}
+                  </div>
+                  <h3 className="font-bold text-white">{f.title}</h3>
+                </div>
+                <p className="text-sm text-gray-400 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -150,8 +204,8 @@ export default function HomePage() {
       {/* Features */}
       <section className="container mx-auto px-4 py-14">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-gray-900">Why Choose ICT Realtors?</h2>
-          <p className="text-gray-500 mt-2">The platform built for Filipino property seekers</p>
+          <h2 className="text-3xl font-bold text-gray-900">Why Choose ICT Real Estate?</h2>
+          <p className="text-gray-500 mt-2">The AI-powered platform built for Filipino property seekers</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((f) => (

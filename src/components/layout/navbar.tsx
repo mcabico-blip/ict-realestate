@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Building2, Menu, X, Heart, User, LogOut, Plus } from "lucide-react";
+import { Building2, Menu, X, Heart, User, LogOut, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,10 @@ export function Navbar() {
           <span>
             <span className="text-red-600">ICT</span>
             <span className="text-gray-800"> Realtors</span>
+          </span>
+          <span className="hidden sm:inline-flex items-center gap-1 ml-1 bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-violet-200">
+            <Sparkles className="h-2.5 w-2.5" />
+            AI
           </span>
         </Link>
 

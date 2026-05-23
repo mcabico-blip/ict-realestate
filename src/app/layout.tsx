@@ -8,14 +8,16 @@ import { Footer } from "@/components/layout/footer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ICT Realtors - Philippines Real Estate Marketplace",
+  title: "ICT Real Estate — Philippines' AI-Powered Property Platform",
   description:
-    "Find properties for sale, rent, and lease in the Philippines. Browse houses, condos, lots, and commercial spaces across all regions.",
-  keywords: "Philippines real estate, property for sale Philippines, condo for rent Manila, house and lot",
+    "Find properties for sale, rent, and lease in the Philippines — powered by AI. Browse houses, condos, lots, and commercial spaces. Connect with PRC-licensed brokers, RESA salespersons, and IBP lawyers.",
+  keywords: "Philippines real estate, AI real estate Philippines, property for sale Philippines, condo for rent Manila, house and lot, PRC broker, IBP lawyer, Innocube Technologies",
+  metadataBase: new URL("https://ictrealestate.innocubetechnologies.com"),
   openGraph: {
-    title: "ICT Realtors",
-    description: "Philippines' trusted real estate marketplace",
+    title: "ICT Real Estate — AI-Powered Philippine Property Platform",
+    description: "Philippines' first AI-powered real estate marketplace. Buy, sell, rent, and connect with licensed professionals.",
     type: "website",
+    url: "https://ictrealestate.innocubetechnologies.com",
   },
 };
 

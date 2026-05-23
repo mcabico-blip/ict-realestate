@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2 } from "lucide-react";
+import { Building2, Sparkles } from "lucide-react";
 
 export function Footer() {
   return (
@@ -14,8 +14,12 @@ export function Footer() {
                 <span className="text-red-500">ICT</span> Realtors
               </span>
             </Link>
+            <div className="inline-flex items-center gap-1.5 bg-violet-500/20 border border-violet-500/30 text-violet-300 text-xs font-semibold px-3 py-1 rounded-full mb-3">
+              <Sparkles className="h-3 w-3" />
+              AI-Powered Platform
+            </div>
             <p className="text-sm text-gray-400 mb-4">
-              The Philippines' trusted real estate marketplace. Find your dream home, commercial space, or investment property.
+              The Philippines' AI-powered real estate marketplace. Find your dream home, commercial space, or investment property — smarter and faster.
             </p>
             <div className="flex gap-3 text-sm">
               <a href="#" className="hover:text-white transition-colors font-medium">Facebook</a>
@@ -64,8 +68,15 @@ export function Footer() {
         </div>
 
         <div className="mt-10 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} ICT Realtors. All rights reserved.</p>
-          <p>Made with ❤️ for the Philippines 🇵🇭</p>
+          <p>© {new Date().getFullYear()} ICT Realtors · <a href="https://innocubetechnologies.com" className="hover:text-gray-300 transition-colors">Innocube Technologies</a>. All rights reserved.</p>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1.5 text-violet-400 font-medium">
+              <Sparkles className="h-3.5 w-3.5" />
+              Powered by AI
+            </span>
+            <span>·</span>
+            <span>Made for the Philippines 🇵🇭</span>
+          </div>
         </div>
       </div>
     </footer>
