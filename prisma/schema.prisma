@@ -1,0 +1,262 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+  BROKER
+  SALESPERSON
+  LAWYER
+  ADMIN
+}
+
+enum ProfessionalType {
+  BROKER
+  SALESPERSON
+  LAWYER
+}
+
+enum ListingType {
+  FOR_SALE
+  FOR_RENT
+  FOR_LEASE
+}
+
+enum PropertyType {
+  HOUSE
+  CONDO
+  APARTMENT
+  TOWNHOUSE
+  LOT
+  COMMERCIAL
+  WAREHOUSE
+  OFFICE
+  FARM
+}
+
+enum PropertyStatus {
+  ACTIVE
+  PENDING
+  SOLD
+  RENTED
+  INACTIVE
+}
+
+enum InquiryStatus {
+  OPEN
+  RESPONDED
+  CLOSED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  phone         String?
+  role          UserRole  @default(BUYER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts            Account[]
+  sessions            Session[]
+  properties          Property[]
+  inquiries           Inquiry[]    @relation("BuyerInquiries")
+  responses           Inquiry[]    @relation("AgentInquiries")
+  favorites           Favorite[]
+  professionalProfile ProfessionalProfile?
+  legalConsultations  LegalConsultation[] @relation("ClientConsultations")
+  legalResponses      LegalConsultation[] @relation("LawyerConsultations")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Unified profile for Brokers, Salespersons, and Lawyers
+model ProfessionalProfile {
+  id               String           @id @default(cuid())
+  userId           String           @unique
+  professionalType ProfessionalType
+
+  // Common fields
+  bio          String?  @db.Text
+  photoUrl     String?
+  yearsExp     Int?
+  city         String?
+  province     String?
+  verified     Boolean  @default(false)
+  featured     Boolean  @default(false)
+  languages    String[]
+  socialFb     String?
+  socialLinked String?
+
+  // Broker / Salesperson fields
+  licenseNo        String?  // PRC Real Estate License No.
+  licenseExpiry    DateTime?
+  prcIdNo          String?
+  accreditationNo  String?  // For salespersons under RESA Law
+  supervisingBroker String? // Salesperson's supervising broker name
+  realtorBoard     String?  // e.g. "PAREB - Makati Board"
+  agency           String?
+  agencyAddress    String?
+  specialties      String[] // Residential, Commercial, Industrial, etc.
+
+  // Lawyer fields
+  ibpRollNo       String?  // Integrated Bar of the Philippines Roll No.
+  ibpChapter      String?  // e.g. "IBP Makati Chapter"
+  lawFirm         String?
+  lawFirmAddress  String?
+  barYear         Int?     // Year passed the bar
+  lawSpecialties  String[] // Title transfer, foreclosure, ejectment, lease drafting, etc.
+  notaryUntil     DateTime? // Commission as Notary Public valid until
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([professionalType, verified])
+  @@index([city, province])
+}
+
+model LegalConsultation {
+  id         String        @id @default(cuid())
+  clientId   String
+  lawyerId   String
+  subject    String
+  message    String        @db.Text
+  status     InquiryStatus @default(OPEN)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  client User @relation("ClientConsultations", fields: [clientId], references: [id], onDelete: Cascade)
+  lawyer User @relation("LawyerConsultations", fields: [lawyerId], references: [id])
+}
+
+model Property {
+  id           String         @id @default(cuid())
+  title        String
+  description  String         @db.Text
+  listingType  ListingType
+  propertyType PropertyType
+  status       PropertyStatus @default(ACTIVE)
+  price        Decimal        @db.Decimal(15, 2)
+  priceUnit    String         @default("PHP")
+  negotiable   Boolean        @default(false)
+
+  address      String
+  city         String
+  municipality String?
+  province     String
+  region       String
+  zipCode      String?
+  latitude     Float?
+  longitude    Float?
+
+  lotArea       Float?
+  floorArea     Float?
+  bedrooms      Int?
+  bathrooms     Int?
+  parkingSpaces Int?
+  floors        Int?
+  yearBuilt     Int?
+  furnished     Boolean @default(false)
+  petFriendly   Boolean @default(false)
+
+  ownerId   String
+  featured  Boolean  @default(false)
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner     User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images    PropertyImage[]
+  amenities PropertyAmenity[]
+  inquiries Inquiry[]
+  favorites Favorite[]
+
+  @@index([city, province])
+  @@index([listingType, propertyType])
+  @@index([status, featured])
+  @@index([price])
+}
+
+model PropertyImage {
+  id         String   @id @default(cuid())
+  propertyId String
+  url        String
+  key        String?
+  isPrimary  Boolean  @default(false)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model PropertyAmenity {
+  id         String @id @default(cuid())
+  propertyId String
+  name       String
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+}
+
+model Inquiry {
+  id         String        @id @default(cuid())
+  propertyId String
+  buyerId    String
+  agentId    String?
+  message    String        @db.Text
+  status     InquiryStatus @default(OPEN)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  buyer    User     @relation("BuyerInquiries", fields: [buyerId], references: [id], onDelete: Cascade)
+  agent    User?    @relation("AgentInquiries", fields: [agentId], references: [id])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  propertyId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+}
