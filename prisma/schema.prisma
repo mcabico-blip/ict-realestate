@@ -54,6 +54,18 @@ enum InquiryStatus {
   CLOSED
 }
 
+enum EngagementStatus {
+  NEW                  // Buyer just engaged a lawyer; lawyer hasn't reviewed yet
+  IN_REVIEW            // Lawyer is reviewing the property/title
+  AWAITING_DOCUMENTS   // Waiting on parties to provide source docs (TCT, Tax Dec, IDs, etc.)
+  DRAFTING             // Lawyer drafting Contract to Sell / Deed of Sale
+  PENDING_SIGNATURES   // Documents ready, awaiting signatures from parties
+  NOTARIZED            // Documents notarized; ready for filing
+  TITLE_TRANSFER       // BIR/CAR/Registry of Deeds processing
+  COMPLETED            // Title transferred, deal closed
+  CANCELLED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -75,6 +87,9 @@ model User {
   professionalProfile ProfessionalProfile?
   legalConsultations  LegalConsultation[] @relation("ClientConsultations")
   legalResponses      LegalConsultation[] @relation("LawyerConsultations")
+  engagementsAsBuyer  Engagement[]        @relation("BuyerEngagements")
+  engagementsAsLawyer Engagement[]        @relation("LawyerEngagements")
+  uploadedDocuments   ContractDocument[]  @relation("DocumentUploader")
 }
 
 model Account {
@@ -202,11 +217,12 @@ model Property {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner     User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  images    PropertyImage[]
-  amenities PropertyAmenity[]
-  inquiries Inquiry[]
-  favorites Favorite[]
+  owner       User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  images      PropertyImage[]
+  amenities   PropertyAmenity[]
+  inquiries   Inquiry[]
+  favorites   Favorite[]
+  engagements Engagement[]
 
   @@index([city, province])
   @@index([listingType, propertyType])
@@ -259,4 +275,44 @@ model Favorite {
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, propertyId])
+}
+
+// Engagement = a buyer hires a lawyer to handle the legal/contract work for a specific property.
+// This is the unit of contract management. Documents (Deed of Sale, TCT, etc.) hang off this.
+model Engagement {
+  id         String           @id @default(cuid())
+  buyerId    String
+  lawyerId   String
+  propertyId String
+  status     EngagementStatus @default(NEW)
+  notes      String?          @db.Text // lawyer's running notes, visible to buyer
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  buyer     User               @relation("BuyerEngagements", fields: [buyerId], references: [id], onDelete: Cascade)
+  lawyer    User               @relation("LawyerEngagements", fields: [lawyerId], references: [id])
+  property  Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  documents ContractDocument[]
+
+  @@unique([buyerId, propertyId]) // one engagement per buyer per property
+  @@index([lawyerId, status])
+  @@index([buyerId])
+}
+
+model ContractDocument {
+  id           String   @id @default(cuid())
+  engagementId String
+  documentType String   // "Deed of Sale", "Tax Declaration", "TCT", "Contract to Sell", etc.
+  fileName     String   // original filename for display
+  fileKey      String   // storage key (path under contracts/{engagementId}/)
+  fileSize     Int      // bytes
+  mimeType     String   // application/pdf, image/jpeg, etc.
+  uploadedById String
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  engagement Engagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  uploadedBy User       @relation("DocumentUploader", fields: [uploadedById], references: [id])
+
+  @@index([engagementId])
 }

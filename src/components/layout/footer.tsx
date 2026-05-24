@@ -47,9 +47,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/professionals?type=BROKER" className="hover:text-white transition-colors">Find a Broker</Link></li>
               <li><Link href="/professionals?type=SALESPERSON" className="hover:text-white transition-colors">Find a Salesperson</Link></li>
-              <li><Link href="/professionals?type=LAWYER" className="hover:text-white transition-colors">Find a Lawyer</Link></li>
               <li><Link href="/auth/register?role=professional" className="hover:text-white transition-colors">Join as a Professional</Link></li>
-              <li><Link href="/professionals" className="hover:text-white transition-colors">All Professionals</Link></li>
             </ul>
           </div>
 

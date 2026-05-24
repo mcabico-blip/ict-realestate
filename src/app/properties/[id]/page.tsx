@@ -6,6 +6,7 @@ import { formatPrice, getListingTypeLabel, getPropertyTypeLabel } from "@/lib/ut
 import { InquiryForm } from "@/components/property/inquiry-form";
 import { FavoriteButton } from "@/components/property/favorite-button";
 import { ShareButton } from "@/components/property/share-button";
+import { EngageLawyerCard } from "@/components/engagement/engage-lawyer-card";
 import {
   MapPin, Bed, Bath, Maximize, Car, Calendar, Home,
   Phone, Mail, CheckCircle2, Eye, Heart,
@@ -278,19 +279,8 @@ export default async function PropertyDetailPage({ params }: Props) {
           {/* Inquiry Form */}
           <InquiryForm propertyId={property.id} agentId={property.owner.id} />
 
-          {/* Find a Lawyer CTA */}
-          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-            <p className="text-sm font-semibold text-purple-800 mb-1">⚖️ Need a Real Estate Lawyer?</p>
-            <p className="text-xs text-purple-600 mb-3">
-              Ensure your transaction is legally sound. Find an IBP-registered lawyer for title transfer, deed drafting, and due diligence.
-            </p>
-            <a
-              href="/professionals?type=LAWYER"
-              className="block text-center py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl transition-colors"
-            >
-              Find a Lawyer →
-            </a>
-          </div>
+          {/* Engage Lawyer — only shown to logged-in buyers, opens contract management flow */}
+          <EngageLawyerCard propertyId={property.id} />
         </div>
       </div>
     </div>

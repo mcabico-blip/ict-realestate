@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Building2, Plus, MessageSquare, Heart, Eye, TrendingUp } from "lucide-react";
+import { Building2, Plus, MessageSquare, Heart, Eye, Scale } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 export default async function DashboardPage() {
@@ -11,8 +11,10 @@ export default async function DashboardPage() {
   if (!session?.user) redirect("/auth/login");
 
   const userId = (session.user as { id: string }).id;
+  const role = (session.user as { role?: string }).role;
+  const isLawyer = role === "LAWYER";
 
-  const [properties, inquiries, favorites] = await Promise.all([
+  const [properties, inquiries, favorites, engagementCount] = await Promise.all([
     db.property.findMany({
       where: { ownerId: userId },
       include: {
@@ -29,34 +31,51 @@ export default async function DashboardPage() {
       take: 5,
     }),
     db.favorite.count({ where: { userId } }),
+    db.engagement.count({
+      where: isLawyer ? { lawyerId: userId } : { buyerId: userId },
+    }),
   ]);
 
   const totalViews = properties.reduce((acc, p) => acc + p.viewCount, 0);
   const totalInquiries = properties.reduce((acc, p) => acc + p._count.inquiries, 0);
 
+  // Friendly first name — strip "Atty." prefix for lawyers
+  const firstName = (() => {
+    const parts = session.user.name?.split(" ") ?? [];
+    return parts[0]?.replace(/\.$/, "") === "Atty" ? parts[1] : parts[0];
+  })();
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {session.user.name?.split(" ")[0]}!</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage your listings and inquiries</p>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {firstName}!</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            {isLawyer ? "Manage your assigned contracts" : "Manage your listings and inquiries"}
+          </p>
         </div>
-        <Link
-          href="/dashboard/listings/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold text-sm transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          New Listing
-        </Link>
+        {!isLawyer && (
+          <Link
+            href="/dashboard/listings/new"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold text-sm transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            New Listing
+          </Link>
+        )}
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "My Listings", value: properties.length, icon: <Building2 className="h-5 w-5 text-red-500" />, href: null },
+          isLawyer
+            ? { label: "Assigned Contracts", value: engagementCount, icon: <Scale className="h-5 w-5 text-purple-500" />, href: "/dashboard/engagements" }
+            : { label: "My Listings", value: properties.length, icon: <Building2 className="h-5 w-5 text-red-500" />, href: null },
           { label: "Total Views", value: totalViews, icon: <Eye className="h-5 w-5 text-blue-500" />, href: null },
           { label: "Inquiries Received", value: totalInquiries, icon: <MessageSquare className="h-5 w-5 text-green-500" />, href: "/dashboard/inquiries" },
-          { label: "Saved Properties", value: favorites, icon: <Heart className="h-5 w-5 text-pink-500" />, href: null },
+          isLawyer
+            ? { label: "Saved Properties", value: favorites, icon: <Heart className="h-5 w-5 text-pink-500" />, href: "/dashboard/favorites" }
+            : { label: "My Contracts", value: engagementCount, icon: <Scale className="h-5 w-5 text-purple-500" />, href: "/dashboard/engagements" },
         ].map((stat) => {
           const inner = (
             <>
@@ -79,7 +98,8 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* My Listings */}
+      {/* My Listings — hidden for lawyers since they don't list properties */}
+      {!isLawyer && (
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-gray-900">My Listings</h2>
@@ -126,6 +146,7 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* Recent Inquiries Sent */}
       {inquiries.length > 0 && (
