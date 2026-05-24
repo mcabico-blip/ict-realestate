@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart' as launcher;
 
 import '../api_client.dart';
+import '../config.dart';
 import '../format.dart';
 import '../models.dart';
 
@@ -107,6 +109,16 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
                 actions: [
+                  IconButton(
+                    icon: const Icon(Icons.share_outlined),
+                    onPressed: () {
+                      final p = snap.data;
+                      if (p == null) return;
+                      Share.share(
+                        '${p.title}\n${formatPrice(p.price)} • ${p.city}, ${p.province}\n${AppConfig.apiBase}/properties/${p.id}',
+                      );
+                    },
+                  ),
                   if (_favLoaded || !widget.isLoggedIn)
                     IconButton(
                       icon: Icon(
@@ -233,6 +245,13 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       ),
                     ],
 
+                    if (widget.isLoggedIn) ...[
+                      const SizedBox(height: 20),
+                      _section(
+                        'Send Inquiry',
+                        child: _InquirySection(propertyId: p.id),
+                      ),
+                    ],
                     const SizedBox(height: 20),
                     _section(
                       'Contact Lister',
@@ -369,6 +388,93 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _InquirySection extends StatefulWidget {
+  final String propertyId;
+  const _InquirySection({required this.propertyId});
+
+  @override
+  State<_InquirySection> createState() => _InquirySectionState();
+}
+
+class _InquirySectionState extends State<_InquirySection> {
+  final _msg = TextEditingController(
+    text: "Hi! I'm interested in this property. Can you provide more details?",
+  );
+  bool _sending = false;
+  bool _sent = false;
+
+  Future<void> _send() async {
+    if (_msg.text.trim().length < 5) return;
+    setState(() => _sending = true);
+    try {
+      await ApiClient.post(
+        '/api/mobile/inquiries',
+        body: {'propertyId': widget.propertyId, 'message': _msg.text.trim()},
+        requireAuth: true,
+      );
+      if (!mounted) return;
+      setState(() => _sent = true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _msg.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_sent) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.green.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.green.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green.shade600),
+            const SizedBox(width: 8),
+            const Expanded(child: Text('Inquiry sent. The lister will reply by email.')),
+          ],
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          controller: _msg,
+          minLines: 3,
+          maxLines: 5,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+        const SizedBox(height: 10),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.red.shade600,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+          onPressed: _sending ? null : _send,
+          child: _sending
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Text('Send Inquiry', style: TextStyle(fontWeight: FontWeight.w600)),
+        ),
+      ],
     );
   }
 }

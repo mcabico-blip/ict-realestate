@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../api_client.dart';
 import '../models.dart';
-import 'properties_screen.dart';
-import 'favorites_screen.dart';
+import 'ai_chat_screen.dart';
 import 'contracts_screen.dart';
+import 'favorites_screen.dart';
 import 'login_screen.dart';
+import 'new_listing_screen.dart';
+import 'properties_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final AppUser? user;
@@ -19,16 +21,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> get _screens => [
         PropertiesScreen(user: widget.user),
-        if (widget.user != null) FavoritesScreen(),
+        if (widget.user != null) const FavoritesScreen(),
         if (widget.user != null) ContractsScreen(user: widget.user!),
+        const AiChatScreen(),
       ];
 
   List<NavigationDestination> get _destinations => [
         const NavigationDestination(icon: Icon(Icons.search), label: 'Browse'),
         if (widget.user != null)
-          const NavigationDestination(icon: Icon(Icons.favorite_border), selectedIcon: Icon(Icons.favorite), label: 'Saved'),
+          const NavigationDestination(
+              icon: Icon(Icons.favorite_border),
+              selectedIcon: Icon(Icons.favorite),
+              label: 'Saved'),
         if (widget.user != null)
-          const NavigationDestination(icon: Icon(Icons.gavel_outlined), selectedIcon: Icon(Icons.gavel), label: 'Contracts'),
+          const NavigationDestination(
+              icon: Icon(Icons.gavel_outlined),
+              selectedIcon: Icon(Icons.gavel),
+              label: 'Contracts'),
+        const NavigationDestination(
+            icon: Icon(Icons.auto_awesome_outlined),
+            selectedIcon: Icon(Icons.auto_awesome),
+            label: 'AI Help'),
       ];
 
   Future<void> _signOut() async {
@@ -39,11 +52,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openNewListing() async {
+    final ok = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NewListingScreen()),
+    );
+    if (ok == true && mounted) {
+      // Reset to Browse tab to see the new listing
+      setState(() => _tabIndex = 0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screens = _screens;
     final destinations = _destinations;
     final safeIndex = _tabIndex.clamp(0, screens.length - 1);
+    final showFab = widget.user != null && safeIndex == 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -65,7 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: Colors.red.shade100,
                 radius: 16,
                 child: Text(
-                  widget.user!.name?.isNotEmpty == true ? widget.user!.name![0].toUpperCase() : '?',
+                  widget.user!.name?.isNotEmpty == true
+                      ? widget.user!.name![0].toUpperCase()
+                      : '?',
                   style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -78,13 +104,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(widget.user!.name ?? widget.user!.email, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(widget.user!.role, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      Text(widget.user!.name ?? widget.user!.email,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(widget.user!.role,
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
                     ],
                   ),
                 ),
                 const PopupMenuDivider(),
-                const PopupMenuItem(value: 'signout', child: Row(children: [Icon(Icons.logout, size: 18), SizedBox(width: 8), Text('Sign Out')])),
+                const PopupMenuItem(
+                  value: 'signout',
+                  child: Row(children: [
+                    Icon(Icons.logout, size: 18),
+                    SizedBox(width: 8),
+                    Text('Sign Out'),
+                  ]),
+                ),
               ],
             )
           else
@@ -106,6 +141,15 @@ class _HomeScreenState extends State<HomeScreen> {
               onDestinationSelected: (i) => setState(() => _tabIndex = i),
               destinations: destinations,
             ),
+      floatingActionButton: showFab
+          ? FloatingActionButton.extended(
+              backgroundColor: Colors.red.shade600,
+              foregroundColor: Colors.white,
+              onPressed: _openNewListing,
+              icon: const Icon(Icons.add),
+              label: const Text('List Property'),
+            )
+          : null,
     );
   }
 }

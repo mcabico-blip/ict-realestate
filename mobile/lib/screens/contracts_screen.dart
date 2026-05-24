@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../api_client.dart';
 import '../format.dart';
 import '../models.dart';
+import 'engagement_detail_screen.dart';
 
 class ContractsScreen extends StatefulWidget {
   final AppUser user;
@@ -87,7 +88,16 @@ class _ContractsScreenState extends State<ContractsScreen> {
                   style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                 ),
               ),
-              ...list.map((e) => _EngagementTile(engagement: e, isLawyer: isLawyer, dateFmt: dateFmt)),
+              ...list.map((e) => GestureDetector(
+                    onTap: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(
+                            builder: (_) => EngagementDetailScreen(engagementId: e.id),
+                          ))
+                          .then((_) => setState(() => _future = _load()));
+                    },
+                    child: _EngagementTile(engagement: e, isLawyer: isLawyer, dateFmt: dateFmt),
+                  )),
             ],
           ),
         );
