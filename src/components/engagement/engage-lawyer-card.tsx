@@ -8,15 +8,14 @@ import { Scale, Loader2, CheckCircle2, X } from "lucide-react";
 type Lawyer = {
   id: string;
   name: string | null;
-  professionalProfile: {
-    lawFirm: string | null;
-    ibpRollNo: string | null;
-    ibpChapter: string | null;
-    barYear: number | null;
-    city: string | null;
-    yearsExp: number | null;
-    lawSpecialties: string[];
-  } | null;
+  lawFirm: string | null;
+  ibpRollNo: string | null;
+  ibpChapter: string | null;
+  barYear: number | null;
+  city: string | null;
+  yearsExp: number | null;
+  lawSpecialties: string[];
+  online: boolean;
 };
 
 type Engagement = {
@@ -200,61 +199,64 @@ function LawyerPickerModal({
             </p>
           ) : (
             <div className="space-y-2">
-              {lawyers.map((l) => {
-                const p = l.professionalProfile;
-                return (
-                  <label
-                    key={l.id}
-                    className={`block border rounded-xl p-3 cursor-pointer transition-colors ${
-                      selected === l.id
-                        ? "border-purple-500 bg-purple-50"
-                        : "border-gray-200 hover:bg-gray-50"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="lawyer"
-                      value={l.id}
-                      checked={selected === l.id}
-                      onChange={(e) => setSelected(e.target.value)}
-                      className="sr-only"
-                    />
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
+              {lawyers.map((l) => (
+                <label
+                  key={l.id}
+                  className={`block border rounded-xl p-3 cursor-pointer transition-colors ${
+                    selected === l.id
+                      ? "border-purple-500 bg-purple-50"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="lawyer"
+                    value={l.id}
+                    checked={selected === l.id}
+                    onChange={(e) => setSelected(e.target.value)}
+                    className="sr-only"
+                  />
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-semibold text-gray-900 text-sm">{l.name}</p>
-                        {p?.lawFirm && <p className="text-xs text-gray-600">{p.lawFirm}</p>}
-                        {p?.ibpRollNo && (
-                          <p className="text-[11px] text-blue-600 font-medium mt-0.5">
-                            IBP Roll No. {p.ibpRollNo}
-                            {p.ibpChapter && ` · ${p.ibpChapter}`}
-                          </p>
-                        )}
-                        {p?.lawSpecialties && p.lawSpecialties.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {p.lawSpecialties.slice(0, 4).map((s) => (
-                              <span
-                                key={s}
-                                className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
-                              >
-                                {s}
-                              </span>
-                            ))}
-                          </div>
+                        {l.online && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 px-1.5 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            Online
+                          </span>
                         )}
                       </div>
-                      <div className="text-right shrink-0">
-                        {p?.barYear && (
-                          <p className="text-[11px] text-gray-500">Bar {p.barYear}</p>
-                        )}
-                        {p?.yearsExp && (
-                          <p className="text-[11px] text-gray-500">{p.yearsExp}+ yrs exp</p>
-                        )}
-                        {p?.city && <p className="text-[11px] text-gray-400">{p.city}</p>}
-                      </div>
+                      {l.lawFirm && <p className="text-xs text-gray-600">{l.lawFirm}</p>}
+                      {l.ibpRollNo && (
+                        <p className="text-[11px] text-blue-600 font-medium mt-0.5">
+                          IBP Roll No. {l.ibpRollNo}
+                          {l.ibpChapter && ` · ${l.ibpChapter}`}
+                        </p>
+                      )}
+                      {l.lawSpecialties.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {l.lawSpecialties.slice(0, 4).map((s) => (
+                            <span
+                              key={s}
+                              className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
+                            >
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </label>
-                );
-              })}
+                    <div className="text-right shrink-0">
+                      {l.barYear && <p className="text-[11px] text-gray-500">Bar {l.barYear}</p>}
+                      {l.yearsExp && (
+                        <p className="text-[11px] text-gray-500">{l.yearsExp}+ yrs exp</p>
+                      )}
+                      {l.city && <p className="text-[11px] text-gray-400">{l.city}</p>}
+                    </div>
+                  </div>
+                </label>
+              ))}
             </div>
           )}
         </div>

@@ -7,6 +7,7 @@ import { InquiryForm } from "@/components/property/inquiry-form";
 import { FavoriteButton } from "@/components/property/favorite-button";
 import { ShareButton } from "@/components/property/share-button";
 import { EngageLawyerCard } from "@/components/engagement/engage-lawyer-card";
+import { StartChatButton } from "@/components/chat/start-chat-button";
 import {
   MapPin, Bed, Bath, Maximize, Car, Calendar, Home,
   Phone, Mail, CheckCircle2, Eye, Heart,
@@ -257,6 +258,8 @@ export default async function PropertyDetailPage({ params }: Props) {
                 )}
               </div>
             </div>
+
+            <StartChatButton propertyId={property.id} ownerId={property.owner.id} />
 
             {property.owner.phone && (
               <a

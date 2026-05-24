@@ -75,6 +75,9 @@ model User {
   password      String?
   phone         String?
   role          UserRole  @default(BUYER)
+  // Presence: when this user last hit an authed API. Used to surface
+  // "online now" indicators and to bias broker/lawyer suggestion order.
+  lastSeenAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -91,6 +94,9 @@ model User {
   engagementsAsLawyer    Engagement[]       @relation("LawyerEngagements")
   engagementsInitiated   Engagement[]       @relation("EngagementsInitiated")
   uploadedDocuments      ContractDocument[] @relation("DocumentUploader")
+  conversationsAsBuyer   Conversation[]     @relation("BuyerConversations")
+  sentMessages           Message[]          @relation("MessageSender")
+  selectedOnProperties   Property[]         @relation("SelectedBuyerOnProperty")
 }
 
 model Account {
@@ -213,17 +219,24 @@ model Property {
   petFriendly   Boolean @default(false)
 
   ownerId   String
+  // When the seller (via their broker) selects one buyer to move forward
+  // with on this property, this points to that buyer's user ID. Other
+  // inquiries auto-close once this is set. When the related engagement
+  // completes, property.status moves to SOLD.
+  selectedBuyerId String?
   featured  Boolean  @default(false)
   viewCount Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner       User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  images      PropertyImage[]
-  amenities   PropertyAmenity[]
-  inquiries   Inquiry[]
-  favorites   Favorite[]
-  engagements Engagement[]
+  owner         User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  selectedBuyer User?             @relation("SelectedBuyerOnProperty", fields: [selectedBuyerId], references: [id])
+  images        PropertyImage[]
+  amenities     PropertyAmenity[]
+  inquiries     Inquiry[]
+  favorites     Favorite[]
+  engagements   Engagement[]
+  conversations Conversation[]
 
   @@index([city, province])
   @@index([listingType, propertyType])
@@ -320,4 +333,41 @@ model ContractDocument {
   uploadedBy User       @relation("DocumentUploader", fields: [uploadedById], references: [id])
 
   @@index([engagementId])
+}
+
+// Conversation = a chat thread for a specific buyer + property pair.
+// Participants are derived at API time:
+//   - The buyer (always)
+//   - The property owner / their broker (always, as the listing's agent)
+//   - The lawyer (only when an Engagement exists for this buyer+property)
+// One conversation per buyer-property pair; a new chat starts as soon as
+// the buyer is interested. The conversation carries through to engagement.
+model Conversation {
+  id         String   @id @default(cuid())
+  buyerId    String
+  propertyId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  buyer    User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  property Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([buyerId, propertyId])
+  @@index([propertyId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String   @db.Text
+  // Array of userIds who've read this message. Sender is implicitly counted.
+  readBy         String[] @default([])
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
 }

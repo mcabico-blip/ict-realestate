@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { InquiryActions } from "@/components/dashboard/inquiry-actions";
 import { EngageLawyerForInquiry } from "@/components/engagement/engage-lawyer-for-inquiry";
+import { SelectBuyerButton } from "@/components/dashboard/select-buyer-button";
 
 export const metadata = { title: "Inquiries Received | ICT Realtors" };
 
@@ -42,7 +43,7 @@ export default async function InquiriesPage() {
     where: { agentId: userId },
     include: {
       property: {
-        select: { id: true, title: true, city: true, province: true },
+        select: { id: true, title: true, city: true, province: true, selectedBuyerId: true, status: true },
       },
       buyer: {
         select: { id: true, name: true, email: true, phone: true },
@@ -150,6 +151,14 @@ export default async function InquiriesPage() {
                   })}
                 </span>
                 <div className="flex items-center gap-2 flex-wrap">
+                  {inq.property.status !== "SOLD" && inq.property.status !== "RENTED" && (
+                    <SelectBuyerButton
+                      propertyId={inq.property.id}
+                      buyerId={inq.buyer.id}
+                      buyerName={inq.buyer.name}
+                      isSelected={inq.property.selectedBuyerId === inq.buyer.id}
+                    />
+                  )}
                   <EngageLawyerForInquiry
                     inquiryId={inq.id}
                     propertyId={inq.property.id}

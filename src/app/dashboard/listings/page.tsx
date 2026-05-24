@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
 import { Plus, Eye, MessageSquare, ArrowLeft, ExternalLink } from "lucide-react";
+import { PropertyStatusActions } from "@/components/dashboard/property-status-actions";
 
 export const metadata = { title: "My Listings | ICT Realtors" };
 
@@ -126,13 +127,20 @@ export default async function MyListingsPage() {
               </div>
 
               {/* Actions */}
-              <Link
-                href={`/properties/${p.id}`}
-                className="shrink-0 p-2 text-gray-400 hover:text-red-600 transition-colors"
-                title="View listing"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Link>
+              <div className="shrink-0 flex flex-col items-end gap-1.5">
+                <Link
+                  href={`/properties/${p.id}`}
+                  className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                  title="View listing"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </Link>
+                <PropertyStatusActions
+                  propertyId={p.id}
+                  currentStatus={p.status}
+                  listingType={p.listingType}
+                />
+              </div>
             </div>
           ))}
         </div>

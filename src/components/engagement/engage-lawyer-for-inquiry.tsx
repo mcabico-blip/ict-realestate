@@ -14,6 +14,7 @@ type Lawyer = {
   city: string | null;
   yearsExp: number | null;
   lawSpecialties: string[];
+  online: boolean;
 };
 
 type Engagement = {
@@ -205,7 +206,15 @@ function LawyerPickerForBuyerModal({
                   />
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 text-sm">{l.name}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-gray-900 text-sm">{l.name}</p>
+                        {l.online && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 px-1.5 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            Online
+                          </span>
+                        )}
+                      </div>
                       {l.lawFirm && <p className="text-xs text-gray-600">{l.lawFirm}</p>}
                       {l.ibpRollNo && (
                         <p className="text-[11px] text-blue-600 font-medium mt-0.5">

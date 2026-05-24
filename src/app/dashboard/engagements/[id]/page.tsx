@@ -8,6 +8,8 @@ import { formatPrice } from "@/lib/utils";
 import { DocumentUploader } from "@/components/engagement/document-uploader";
 import { DocumentRow } from "@/components/engagement/document-row";
 import { StatusUpdater } from "@/components/engagement/status-updater";
+import { ChatPanel } from "@/components/chat/chat-panel";
+import { ensureConversation } from "@/lib/chat";
 import {
   ArrowLeft,
   Scale,
@@ -89,6 +91,10 @@ export default async function EngagementDetailPage({
   const isLawyer = engagement.lawyerId === userId;
   if (!isBuyer && !isLawyer) notFound();
 
+  // Ensure a chat conversation exists for this buyer + property pair so the
+  // ChatPanel can load it. (Buyer initiates; idempotent.)
+  const conversation = await ensureConversation(engagement.buyerId, engagement.propertyId);
+
   const img = engagement.property.images[0];
 
   return (
@@ -164,6 +170,15 @@ export default async function EngagementDetailPage({
                 {formatPrice(Number(engagement.property.price))}
               </p>
             </Link>
+          </div>
+
+          {/* Chat */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-purple-600" />
+              Conversation
+            </h2>
+            <ChatPanel conversationId={conversation.id} currentUserId={userId} />
           </div>
 
           {/* Documents */}

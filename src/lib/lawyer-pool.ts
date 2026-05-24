@@ -14,6 +14,7 @@
  */
 
 import { db } from "@/lib/db";
+import { isOnline, presenceScore } from "@/lib/presence";
 
 export type LawyerSummary = {
   id: string;
@@ -29,6 +30,8 @@ export type LawyerSummary = {
   lawSpecialties: string[];
   verified: boolean;
   featured: boolean;
+  // Presence — true if the lawyer has hit an authed endpoint in the last 5 min.
+  online: boolean;
 };
 
 /**
@@ -62,6 +65,7 @@ export async function fetchLawyerPool(filters: {
     select: {
       id: true,
       name: true,
+      lastSeenAt: true,
       professionalProfile: {
         select: {
           lawFirm: true,
@@ -76,14 +80,10 @@ export async function fetchLawyerPool(filters: {
         },
       },
     },
-    orderBy: [
-      { professionalProfile: { featured: "desc" } },
-      { professionalProfile: { verified: "desc" } },
-      { name: "asc" },
-    ],
   });
 
-  return lawyers.map((l) => ({
+  // Sort: online > featured > verified > recently active > name
+  const enriched = lawyers.map((l) => ({
     id: l.id,
     name: l.name,
     lawFirm: l.professionalProfile?.lawFirm ?? null,
@@ -95,7 +95,18 @@ export async function fetchLawyerPool(filters: {
     lawSpecialties: l.professionalProfile?.lawSpecialties ?? [],
     verified: l.professionalProfile?.verified ?? false,
     featured: l.professionalProfile?.featured ?? false,
+    online: isOnline(l.lastSeenAt),
+    _score: presenceScore(l.lastSeenAt),
   }));
+  enriched.sort((a, b) => {
+    // Online comes first
+    if (a.online !== b.online) return a.online ? -1 : 1;
+    if (a.featured !== b.featured) return a.featured ? -1 : 1;
+    if (a.verified !== b.verified) return a.verified ? -1 : 1;
+    if (a._score !== b._score) return b._score - a._score;
+    return (a.name ?? "").localeCompare(b.name ?? "");
+  });
+  return enriched.map(({ _score: _unused, ...rest }) => rest);
 }
 
 /**

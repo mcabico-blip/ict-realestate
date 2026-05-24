@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Building2, Plus, MessageSquare, Heart, Eye, Scale } from "lucide-react";
+import { Building2, Plus, MessageSquare, Heart, Eye, Scale, MessageCircle } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 export default async function DashboardPage() {
@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   const role = (session.user as { role?: string }).role;
   const isLawyer = role === "LAWYER";
 
-  const [properties, inquiries, favorites, engagementCount] = await Promise.all([
+  const [properties, inquiries, favorites, engagementCount, unreadMessages] = await Promise.all([
     db.property.findMany({
       where: { ownerId: userId },
       include: {
@@ -34,6 +34,39 @@ export default async function DashboardPage() {
     db.engagement.count({
       where: isLawyer ? { lawyerId: userId } : { buyerId: userId },
     }),
+    // Unread messages — messages in any conversation user participates in,
+    // not from this user, where this user isn't in readBy.
+    (async () => {
+      const ownedIds = (
+        await db.property.findMany({ where: { ownerId: userId }, select: { id: true } })
+      ).map((p) => p.id);
+      const lawyerEngs = await db.engagement.findMany({
+        where: { lawyerId: userId },
+        select: { buyerId: true, propertyId: true },
+      });
+      const conversationIds = (
+        await db.conversation.findMany({
+          where: {
+            OR: [
+              { buyerId: userId },
+              ...(ownedIds.length > 0 ? [{ propertyId: { in: ownedIds } }] : []),
+              ...lawyerEngs.map((e) => ({
+                AND: [{ buyerId: e.buyerId }, { propertyId: e.propertyId }],
+              })),
+            ],
+          },
+          select: { id: true },
+        })
+      ).map((c) => c.id);
+      if (conversationIds.length === 0) return 0;
+      return await db.message.count({
+        where: {
+          conversationId: { in: conversationIds },
+          senderId: { not: userId },
+          NOT: { readBy: { has: userId } },
+        },
+      });
+    })(),
   ]);
 
   const totalViews = properties.reduce((acc, p) => acc + p.viewCount, 0);
@@ -71,7 +104,7 @@ export default async function DashboardPage() {
           isLawyer
             ? { label: "Assigned Contracts", value: engagementCount, icon: <Scale className="h-5 w-5 text-purple-500" />, href: "/dashboard/engagements" }
             : { label: "My Listings", value: properties.length, icon: <Building2 className="h-5 w-5 text-red-500" />, href: null },
-          { label: "Total Views", value: totalViews, icon: <Eye className="h-5 w-5 text-blue-500" />, href: null },
+          { label: unreadMessages > 0 ? `Unread Messages` : "Messages", value: unreadMessages, icon: <MessageCircle className="h-5 w-5 text-red-500" />, href: "/dashboard/conversations" },
           { label: "Inquiries Received", value: totalInquiries, icon: <MessageSquare className="h-5 w-5 text-green-500" />, href: "/dashboard/inquiries" },
           isLawyer
             ? { label: "Saved Properties", value: favorites, icon: <Heart className="h-5 w-5 text-pink-500" />, href: "/dashboard/favorites" }
