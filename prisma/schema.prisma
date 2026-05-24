@@ -87,9 +87,10 @@ model User {
   professionalProfile ProfessionalProfile?
   legalConsultations  LegalConsultation[] @relation("ClientConsultations")
   legalResponses      LegalConsultation[] @relation("LawyerConsultations")
-  engagementsAsBuyer  Engagement[]        @relation("BuyerEngagements")
-  engagementsAsLawyer Engagement[]        @relation("LawyerEngagements")
-  uploadedDocuments   ContractDocument[]  @relation("DocumentUploader")
+  engagementsAsBuyer     Engagement[]       @relation("BuyerEngagements")
+  engagementsAsLawyer    Engagement[]       @relation("LawyerEngagements")
+  engagementsInitiated   Engagement[]       @relation("EngagementsInitiated")
+  uploadedDocuments      ContractDocument[] @relation("DocumentUploader")
 }
 
 model Account {
@@ -277,22 +278,26 @@ model Favorite {
   @@unique([userId, propertyId])
 }
 
-// Engagement = a buyer hires a lawyer to handle the legal/contract work for a specific property.
-// This is the unit of contract management. Documents (Deed of Sale, TCT, etc.) hang off this.
+// Engagement = a lawyer is tagged to handle the legal/contract work for a specific
+// buyer-property deal. Can be initiated by the buyer themselves OR by the listing's
+// broker/salesperson on behalf of an inquiring buyer.
+// Documents (Deed of Sale, TCT, etc.) hang off this.
 model Engagement {
-  id         String           @id @default(cuid())
-  buyerId    String
-  lawyerId   String
-  propertyId String
-  status     EngagementStatus @default(NEW)
-  notes      String?          @db.Text // lawyer's running notes, visible to buyer
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  id            String           @id @default(cuid())
+  buyerId       String
+  lawyerId      String
+  propertyId    String
+  initiatedById String           // who tagged the lawyer — buyer themselves or the broker
+  status        EngagementStatus @default(NEW)
+  notes         String?          @db.Text // lawyer's running notes, visible to buyer
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
-  buyer     User               @relation("BuyerEngagements", fields: [buyerId], references: [id], onDelete: Cascade)
-  lawyer    User               @relation("LawyerEngagements", fields: [lawyerId], references: [id])
-  property  Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  documents ContractDocument[]
+  buyer       User               @relation("BuyerEngagements", fields: [buyerId], references: [id], onDelete: Cascade)
+  lawyer      User               @relation("LawyerEngagements", fields: [lawyerId], references: [id])
+  initiatedBy User               @relation("EngagementsInitiated", fields: [initiatedById], references: [id])
+  property    Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  documents   ContractDocument[]
 
   @@unique([buyerId, propertyId]) // one engagement per buyer per property
   @@index([lawyerId, status])

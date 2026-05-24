@@ -8,6 +8,7 @@ import {
   Clock, CheckCircle2, XCircle, ArrowLeft,
 } from "lucide-react";
 import { InquiryActions } from "@/components/dashboard/inquiry-actions";
+import { EngageLawyerForInquiry } from "@/components/engagement/engage-lawyer-for-inquiry";
 
 export const metadata = { title: "Inquiries Received | ICT Realtors" };
 
@@ -137,7 +138,7 @@ export default async function InquiriesPage() {
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
                 <span className="text-xs text-gray-400 flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
                   {new Date(inq.createdAt).toLocaleDateString("en-PH", {
@@ -148,7 +149,16 @@ export default async function InquiriesPage() {
                     minute: "2-digit",
                   })}
                 </span>
-                <InquiryActions inquiryId={inq.id} status={inq.status} />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <EngageLawyerForInquiry
+                    inquiryId={inq.id}
+                    propertyId={inq.property.id}
+                    buyerId={inq.buyer.id}
+                    buyerName={inq.buyer.name}
+                    propertyTitle={inq.property.title}
+                  />
+                  <InquiryActions inquiryId={inq.id} status={inq.status} />
+                </div>
               </div>
             </div>
           ))}
