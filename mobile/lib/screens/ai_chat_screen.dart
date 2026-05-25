@@ -1,5 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../api_client.dart';
+import 'property_detail_screen.dart';
 
 class _ChatMessage {
   final String role; // 'user' or 'assistant'
@@ -171,10 +173,12 @@ class _Bubble extends StatelessWidget {
                   bottomRight: Radius.circular(isUser ? 4 : 16),
                 ),
               ),
-              child: Text(
-                content,
-                style: TextStyle(color: isUser ? Colors.white : Colors.black87, fontSize: 14, height: 1.4),
-              ),
+              child: isUser
+                  ? Text(
+                      content,
+                      style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.4),
+                    )
+                  : _LinkedText(content: content),
             ),
           ),
         ],
@@ -217,6 +221,60 @@ class _ThinkingBubble extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Renders assistant text with inline tappable links. Recognizes the
+/// `[label](/properties/<id>)` pattern emitted by the AI chat backend and
+/// routes taps to PropertyDetailScreen. Other internal `/...` URLs render
+/// as decorated text but are ignored (safer than blindly routing).
+class _LinkedText extends StatelessWidget {
+  final String content;
+  const _LinkedText({required this.content});
+
+  static final _linkPattern = RegExp(r'\[([^\]]+)\]\(([^)]+)\)');
+
+  @override
+  Widget build(BuildContext context) {
+    final spans = <TextSpan>[];
+    int last = 0;
+    for (final m in _linkPattern.allMatches(content)) {
+      if (m.start > last) {
+        spans.add(TextSpan(text: content.substring(last, m.start)));
+      }
+      final label = m.group(1)!;
+      final url = m.group(2)!;
+      if (url.startsWith('/properties/')) {
+        final id = url.substring('/properties/'.length).split('?').first;
+        spans.add(TextSpan(
+          text: label,
+          style: TextStyle(
+            color: Colors.red.shade700,
+            fontWeight: FontWeight.bold,
+            decoration: TextDecoration.underline,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => PropertyDetailScreen(propertyId: id, isLoggedIn: true),
+              ));
+            },
+        ));
+      } else {
+        // Unknown URL — render label as plain text
+        spans.add(TextSpan(text: label));
+      }
+      last = m.end;
+    }
+    if (last < content.length) {
+      spans.add(TextSpan(text: content.substring(last)));
+    }
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(color: Colors.black87, fontSize: 14, height: 1.4),
+        children: spans,
       ),
     );
   }

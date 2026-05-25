@@ -79,6 +79,7 @@ async function buildPropertyContext() {
   const properties = await db.property.findMany({
     where: { status: "ACTIVE" },
     select: {
+      id: true,
       title: true,
       listingType: true,
       propertyType: true,
@@ -96,6 +97,7 @@ async function buildPropertyContext() {
 
   const lines = properties.map((p) => {
     const parts = [
+      `id=${p.id}`,
       p.title,
       `${p.listingType.replace("_", " ").toLowerCase()}`,
       `PHP ${Number(p.price).toLocaleString()}`,
@@ -107,7 +109,15 @@ async function buildPropertyContext() {
     return "- " + parts.join(" • ");
   });
 
-  return `Current property catalog (top ${properties.length} of active listings):\n${lines.join("\n")}`;
+  return `Current property catalog (top ${properties.length} of active listings).
+Each entry starts with id=<property-id>. When you recommend a specific property,
+ALWAYS format the property name as a markdown link using this exact pattern:
+  [Property Title](/properties/<property-id>)
+
+Example: "I'd recommend the [Studio Condo for Sale in Ortigas](/properties/abc123) at PHP 4.8M."
+
+Catalog:
+${lines.join("\n")}`;
 }
 
 export async function POST(req: NextRequest) {

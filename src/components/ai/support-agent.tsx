@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Send, Sparkles, X, Bot, Loader2 } from "lucide-react";
+import { renderMarkdownLinks } from "@/lib/render-markdown-links";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -155,7 +156,9 @@ function Bubble({ role, content }: { role: string; content: string }) {
             : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"
         }`}
       >
-        {content}
+        {isUser
+          ? content
+          : renderMarkdownLinks(content, "underline font-semibold text-red-600 hover:text-red-700 transition-colors")}
       </div>
     </div>
   );

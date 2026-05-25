@@ -34,13 +34,23 @@ flutter run
 
 Hot reload: press `r` in the terminal after each code change.
 
-### 4. Build a release APK
+### 4. Build a release APK locally
 
 ```bash
 flutter build apk --release
 ```
 
 Output: `build/app/outputs/flutter-apk/app-release.apk` — sideload onto any Android phone.
+
+### 4b. Or grab the prebuilt APK from GitHub Actions
+
+Every push to `master` that touches `mobile/` automatically triggers a CI build. To download:
+
+1. Go to <https://github.com/mcabico-blip/ict-realestate/actions>
+2. Click the most recent **"Build Mobile APK"** workflow run
+3. Scroll to **Artifacts** at the bottom
+4. Download `ict-realtors-apk` (a zip containing the APK named `ict-realtors-<sha>.apk`)
+5. Transfer the APK to your Android phone and sideload (enable "Install unknown apps" for your file manager / browser when prompted).
 
 ## Test credentials
 
