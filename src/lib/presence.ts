@@ -1,6 +1,11 @@
 import { db } from "@/lib/db";
 
-const ONLINE_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+// Online = explicit heartbeat in the last 2 minutes.
+// The client sends a heartbeat every 60s ONLY while the tab is visible+focused
+// AND the user has been active (mouse/keyboard) in the last few minutes.
+// So a 2-minute window catches users who are truly present but tolerates one
+// missed heartbeat (network blip, brief blur).
+const ONLINE_WINDOW_MS = 2 * 60 * 1000;
 
 /**
  * Update a user's lastSeenAt timestamp. Called by authed API routes as a

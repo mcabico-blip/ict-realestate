@@ -8,6 +8,8 @@ import { FavoriteButton } from "@/components/property/favorite-button";
 import { ShareButton } from "@/components/property/share-button";
 import { EngageLawyerCard } from "@/components/engagement/engage-lawyer-card";
 import { StartChatButton } from "@/components/chat/start-chat-button";
+import { AvailableBrokersPanel } from "@/components/property/available-brokers-panel";
+import { isOnline } from "@/lib/presence";
 import {
   MapPin, Bed, Bath, Maximize, Car, Calendar, Home,
   Phone, Mail, CheckCircle2, Eye, Heart,
@@ -19,12 +21,74 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const property = await db.property.findUnique({
     where: { id },
-    select: { title: true, city: true, province: true, description: true },
+    select: {
+      title: true,
+      city: true,
+      province: true,
+      description: true,
+      price: true,
+      listingType: true,
+      propertyType: true,
+      bedrooms: true,
+      bathrooms: true,
+      floorArea: true,
+      images: { where: { isPrimary: true }, take: 1, select: { url: true } },
+    },
   });
   if (!property) return { title: "Property Not Found" };
+
+  // Build a rich, share-friendly description
+  const price = `PHP ${Number(property.price).toLocaleString("en-PH")}`;
+  const listingLabel =
+    property.listingType === "FOR_RENT"
+      ? "For Rent"
+      : property.listingType === "FOR_LEASE"
+      ? "For Lease"
+      : "For Sale";
+  const specs: string[] = [];
+  if (property.bedrooms) specs.push(`${property.bedrooms} BR`);
+  if (property.bathrooms) specs.push(`${property.bathrooms} BA`);
+  if (property.floorArea) specs.push(`${property.floorArea} sqm`);
+
+  const ogDescription = `${listingLabel} • ${price}${
+    property.listingType !== "FOR_SALE" ? "/mo" : ""
+  } • ${property.city}, ${property.province}${
+    specs.length > 0 ? ` • ${specs.join(" • ")}` : ""
+  }`;
+
+  const imageUrl = property.images[0]?.url;
+  const canonicalUrl = `https://ictrealestate.innocubetechnologies.com/properties/${id}`;
+
   return {
     title: `${property.title} - ICT Realtors`,
-    description: property.description.slice(0, 160),
+    description: ogDescription,
+    openGraph: {
+      title: property.title,
+      description: ogDescription,
+      url: canonicalUrl,
+      siteName: "ICT Realtors",
+      type: "website",
+      locale: "en_PH",
+      ...(imageUrl
+        ? {
+            images: [
+              {
+                url: imageUrl,
+                width: 1200,
+                height: 630,
+                alt: property.title,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      card: imageUrl ? "summary_large_image" : "summary",
+      title: property.title,
+      description: ogDescription,
+      ...(imageUrl ? { images: [imageUrl] } : {}),
+    },
+    alternates: { canonical: canonicalUrl },
   };
 }
 
@@ -236,11 +300,21 @@ export default async function PropertyDetailPage({ params }: Props) {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h3 className="font-semibold text-gray-900 mb-4">Contact Lister</h3>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg shrink-0">
+              <div className="relative w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg shrink-0">
                 {property.owner.name?.[0] ?? "?"}
+                {isOnline(property.owner.lastSeenAt) && (
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white" />
+                )}
               </div>
               <div>
-                <p className="font-semibold text-gray-800">{property.owner.name}</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="font-semibold text-gray-800">{property.owner.name}</p>
+                  {isOnline(property.owner.lastSeenAt) && (
+                    <span className="text-[10px] font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded">
+                      ONLINE
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-500">
                   {property.owner.role === "BROKER"
                     ? "Licensed Real Estate Broker"
@@ -281,6 +355,13 @@ export default async function PropertyDetailPage({ params }: Props) {
 
           {/* Inquiry Form */}
           <InquiryForm propertyId={property.id} agentId={property.owner.id} />
+
+          {/* Fallback when the listing's broker is offline — show other available brokers */}
+          <AvailableBrokersPanel
+            excludeId={property.owner.id}
+            city={property.city}
+            listingBrokerOnline={isOnline(property.owner.lastSeenAt)}
+          />
 
           {/* Engage Lawyer — only shown to logged-in buyers, opens contract management flow */}
           <EngageLawyerCard propertyId={property.id} />

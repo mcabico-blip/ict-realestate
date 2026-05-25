@@ -8,7 +8,7 @@ type Message = { role: "user" | "assistant"; content: string };
 const INITIAL_GREETING: Message = {
   role: "assistant",
   content:
-    "Hi! I'm the ICT Realtors Support Agent. I can help you find properties, explain the Philippine real estate process, or walk you through using the platform. What would you like to know?",
+    "Hi! I'm the ICT Realtors Support Agent — kausapin mo ako sa kahit anong wika (Tagalog, Bisaya, Ilocano, English, etc.).\n\nI can help you:\n• Find properties matching your needs\n• Understand the buying/renting/title-transfer process\n• Walk through using the platform\n\nAng layo lang ng usapan dito — no judgment, ask anything!",
 };
 
 export function SupportAgent() {

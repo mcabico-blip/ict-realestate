@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'config.dart';
 import 'models.dart';
+import 'presence_ticker.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -48,7 +49,7 @@ class ICTRealtorsApp extends StatelessWidget {
           }),
         ),
       ),
-      home: const _Splash(),
+      home: PresenceTicker(child: const _Splash()),
     );
   }
 }

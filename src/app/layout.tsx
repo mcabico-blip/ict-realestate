@@ -5,6 +5,7 @@ import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { SupportAgent } from "@/components/ai/support-agent";
+import { PresenceTracker } from "@/components/presence/presence-tracker";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +36,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <SupportAgent />
+          <PresenceTracker />
         </Providers>
       </body>
     </html>
