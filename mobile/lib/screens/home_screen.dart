@@ -3,6 +3,7 @@ import '../api_client.dart';
 import '../models.dart';
 import 'ai_chat_screen.dart';
 import 'contracts_screen.dart';
+import 'conversations_screen.dart';
 import 'favorites_screen.dart';
 import 'login_screen.dart';
 import 'new_listing_screen.dart';
@@ -21,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> get _screens => [
         PropertiesScreen(user: widget.user),
+        if (widget.user != null) const ConversationsScreen(),
         if (widget.user != null) const FavoritesScreen(),
         if (widget.user != null) ContractsScreen(user: widget.user!),
         const AiChatScreen(),
@@ -28,6 +30,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<NavigationDestination> get _destinations => [
         const NavigationDestination(icon: Icon(Icons.search), label: 'Browse'),
+        if (widget.user != null)
+          const NavigationDestination(
+              icon: Icon(Icons.chat_bubble_outline),
+              selectedIcon: Icon(Icons.chat_bubble),
+              label: 'Messages'),
         if (widget.user != null)
           const NavigationDestination(
               icon: Icon(Icons.favorite_border),

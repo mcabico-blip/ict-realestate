@@ -7,6 +7,7 @@ import '../api_client.dart';
 import '../config.dart';
 import '../format.dart';
 import '../models.dart';
+import 'chat_screen.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
   final String propertyId;
@@ -293,6 +294,10 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
+                          if (widget.isLoggedIn) ...[
+                            _MessageListerButton(propertyId: p.id, propertyTitle: p.title),
+                            const SizedBox(height: 6),
+                          ],
                           if (p.owner.phone != null)
                             _contactButton(Icons.phone, p.owner.phone!, () {
                               launcher.launchUrl(Uri.parse('tel:${p.owner.phone}'));
@@ -475,6 +480,72 @@ class _InquirySectionState extends State<_InquirySection> {
               : const Text('Send Inquiry', style: TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
+    );
+  }
+}
+
+class _MessageListerButton extends StatefulWidget {
+  final String propertyId;
+  final String propertyTitle;
+  const _MessageListerButton({required this.propertyId, required this.propertyTitle});
+
+  @override
+  State<_MessageListerButton> createState() => _MessageListerButtonState();
+}
+
+class _MessageListerButtonState extends State<_MessageListerButton> {
+  bool _busy = false;
+
+  Future<void> _start() async {
+    setState(() => _busy = true);
+    try {
+      final data = await ApiClient.post(
+        '/api/mobile/conversations',
+        body: {'propertyId': widget.propertyId},
+        requireAuth: true,
+      );
+      final c = data['conversation'] as Map<String, dynamic>;
+      if (!mounted) return;
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          conversationId: c['id'] as String,
+          propertyTitle: widget.propertyTitle,
+        ),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: _busy ? null : _start,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.red.shade50,
+          border: Border.all(color: Colors.red.shade200),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            _busy
+                ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red.shade700))
+                : Icon(Icons.chat_bubble, size: 16, color: Colors.red.shade700),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text('Message Lister',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.red.shade700)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
